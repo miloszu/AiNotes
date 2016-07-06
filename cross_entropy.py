@@ -54,7 +54,7 @@ def do_episode(policy, env, num_steps, render=False):
         a = policy.act(ob)
         (ob, reward, done, _info) = env.step(a)
         total_rew += reward
-        if render and t % 3 == 0: env.render()
+        if render and t % 2 == 0: env.render()
         if done: break
     return total_rew
 
@@ -77,10 +77,10 @@ def make_policy(theta):
 
 
 # Task settings:d
-env = gym.make('CartPole-v0')  # Change as needed
-num_steps = 500  # maximum length of episode
+env = gym.make('Pendulum-v0')  # Change as needed
+num_steps = 200  # maximum length of episode
 # Alg settings:
-n_iter = 100  # number of iterations of CEM
+n_iter = 1000  # number of iterations of CEM
 batch_size = 25  # number of samples per batch
 elite_frac = 0.2  # fraction of samples used as elite set
 
@@ -98,14 +98,17 @@ theta_std = np.ones(dim_theta)
 # Now, for the algorithm
 for iteration in range(n_iter):
     # Sample parameter vectors
-    thetas = [np.random.normal(theta_mean, theta_std, dim_theta) for i in range(batch_size)]
+    thetas = [np.array([np.random.normal(theta_mean[j], max(1e-20, theta_std[j])) for j in range(dim_theta)]) for i in
+              range(batch_size)]
     rewards = [noisy_evaluation(theta) for theta in thetas]
     # Get elite parameters
     n_elite = int(batch_size * elite_frac)
     elite_inds = np.argsort(rewards)[batch_size - n_elite:batch_size]
     elite_thetas = [thetas[i] for i in elite_inds]
     # Update theta_mean, theta_std
-    theta_mean = np.mean(elite_thetas)
-    theta_std = np.std(elite_thetas)
-    print("iteration %i. mean f: %8.3g. max f: %8.3g" % (iteration, np.mean(rewards), np.max(rewards)))
-    do_episode(make_policy(theta_mean), env, num_steps, render=True)
+    theta_mean = np.mean(elite_thetas, axis=0)
+    theta_std = np.std(elite_thetas, axis=0)
+    print("Iteration {0}; mean reward: {1}; max reward: {2}\ntheta mean: {3}\ntheta_std: {4}"
+          .format(iteration, np.mean(rewards), np.max(rewards), theta_mean, theta_std))
+    if iteration % 3 == 0:
+        do_episode(make_policy(theta_mean), env, num_steps, render=True)
