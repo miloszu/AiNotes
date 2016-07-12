@@ -11,13 +11,12 @@ import gym
 from gym.spaces import Discrete, Box
 import random
 
-class NeuralNetwork(Chain):
+class RectifierNetwork(Chain):
     def __init__(self, in_size, out_size):
-        hidden_size = int((in_size + out_size)/2 + 1)
-        super(NeuralNetwork, self).__init__(
-            l1=L.Linear(in_size, hidden_size),
-            l2=L.Linear(hidden_size, hidden_size),
-            l3=L.Linear(hidden_size, out_size)
+        super(RectifierNetwork, self).__init__(
+            l1=L.Linear(in_size, 4),
+            l2=L.Linear(4, 4),
+            l3=L.Linear(4, out_size)
         )
 
     def __call__(self, x):
@@ -28,28 +27,38 @@ class NeuralNetwork(Chain):
 
 epsilon = .2
 learning_rate = .2
-env = gym.make('Pendulum-v0')
+env = gym.make('CartPole-v0')
 
-input_count = env.observation_space.n + env.action_space.n
+observation_count = env.observation_space.shape[0]
+action_count = env.action_space.n - 1 #env.action_space.shape[0]
+input_count = observation_count + action_count
 discount_factor = .99
-Q = NeuralNetwork(input_count ,1)
+Q = RectifierNetwork(input_count, 1)
+model = L.Classifier(Q)
+optimizer = optimizers.SGD()
+optimizer.setup(model)
 
 observation = env.reset()
 while True:
     action = None
     if epsilon < random.random():
-        action_rewards = [Q(observation + a) for a in range(env.action_space)]
+        action_rewards = Q(np.array([np.array(np.append(observation, a)) for a in range(0,action_count + 1)], dtype=np.float32)).data
         action = np.argmax(action_rewards)
     else:
         action = env.action_space.sample()
 
-    q_t = Q(observation + action)
+    x = np.append(observation, action)
+    q_t = Q(np.array([x], dtype=np.float32)).data[0][0]
     (observation, reward, done, _info) = env.step(action)
+    env.render()
 
+    q_t_max_a = max(Q(np.array([np.array(np.append(observation, a)) for a in range(0,action_count + 1)], dtype=np.float32)).data[0])
+    Q_update = q_t + learning_rate * (reward + discount_factor * q_t_max_a - q_t )
 
-    Q_update = q_t + learning_rate * (reward + discount_factor * a )
+    x = Variable(np.array([x], dtype=np.float32))
+    y = Variable(np.array([np.array([Q_update])], dtype=np.float32))
 
-
+    optimizer.update(model, x, y)
     if done:
         env.reset()
 

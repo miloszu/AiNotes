@@ -48,7 +48,7 @@ for epoch in range(20):
     print('epoch {}'.format(epoch))
     indexes = np.random.permutation(data_size)
     for i in range(0, data_size, batch_size):
-        x = Variable(x_train[indexes[i: i+batch_size]])
+        x = Variable(x_train[indexes[i: i + batch_size]])
         y = Variable(y_train[indexes[i: i + batch_size]])
         optimizer.update(model, x, y)
 
