@@ -77,7 +77,7 @@ def make_policy(theta):
 
 
 # Task settings:d
-env = gym.make('Pendulum-v0')  # Change as needed
+env = gym.make('MountainCar-v0')  # Change as needed
 num_steps = 200  # maximum length of episode
 # Alg settings:
 n_iter = 1000  # number of iterations of CEM
