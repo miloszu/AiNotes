@@ -11,7 +11,7 @@ import random
 save_file = False
 from_file = True
 render = True
-network_filename = "CartPole-v0.xml"
+network_filename = "CartPole-v0.qlearning.FIT200.xml"
 epsilon = .05
 learning_rate = .5
 episode_steps = 200
@@ -69,3 +69,14 @@ while True:
     if save_file and counter % 50 == 0:
         NetworkWriter.writeToFile(net, network_filename)
         print("Neural Network Saved to ", network_filename)
+
+
+
+
+
+
+
+
+
+
+
