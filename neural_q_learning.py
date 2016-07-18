@@ -3,6 +3,7 @@ from pybrain.tools.shortcuts import buildNetwork
 from pybrain.datasets import SupervisedDataSet
 from pybrain.tools.customxml import NetworkWriter
 from pybrain.tools.customxml import NetworkReader
+from pybrain.structure.modules import ReluLayer, LinearLayer
 from gym.spaces import Discrete, Box
 
 
@@ -10,15 +11,16 @@ import numpy as np
 import gym
 import random
 
-save_file = True
+save_file = False
 from_file = False
 render = False
-network_filename = "Acrobot-v0.4layers.xml"
-epsilon = 0.9
-learning_rate = .9
+train = True
+network_filename = "CartPole-v0.xml"
+epsilon = .3
 episode_steps = 1000
-avg_steps_count = 25
-env = gym.make('Acrobot-v0')
+avg_steps_count = 10
+alpha = .2
+env = gym.make('CartPole-v0')
 
 
 
@@ -32,7 +34,7 @@ else:
 input_count = observation_count + action_count
 discount_factor = .99
 
-net = buildNetwork(input_count, input_count, input_count, 1, bias=True)
+net = buildNetwork(input_count, input_count, 1, bias=True, hiddenclass=ReluLayer, outclass=LinearLayer)
 
 if from_file:
     fileObject = open(network_filename, 'r')
@@ -59,18 +61,26 @@ while True:
         else:
             action = env.action_space.sample()
 
+
         x = np.append(observation, action)
-        q_t = net.activate(x)
+        q_sa = net.activate(x)
+
         (observation, reward, done, _info) = env.step(action)
+
         total_reward += reward
 
         if step %4 == 0 and render:
             env.render()
+
         actions = [np.append(observation, a) for a in range(0, env.action_space.n)]
-        rewards_t = [net.activate(act)[0] for act in actions]
-        q_t_max_a = max(rewards_t)
+        q_values = [net.activate(act)[0] for act in actions]
+        max_q_prim = max(q_values)
+
         #print(q_t, end="")
-        y = q_t + learning_rate * (reward + discount_factor * q_t_max_a - q_t )
+        if done:
+            y = q_sa + alpha * (reward - q_sa)
+        else:
+            y = q_sa + alpha * (reward + max_q_prim - q_sa)
         #print("Reward: {0} Q = {1} <= {2}".format(reward,q_t, y))
         ds.addSample(x, y)
         if done:
@@ -83,13 +93,22 @@ while True:
     if min_reward > total_reward:
         min_reward = total_reward
     if max_reward == min_reward:
-        epsilon = 0.9
+        epsilon = .3
     else:
         walking_avg = sum(avg_queue)/len(avg_queue)
-        epsilon = max((max_reward - walking_avg) / (max_reward - min_reward) * 0.9, 0.01)
+        epsilon = max((max_reward - walking_avg) / (max_reward - min_reward) * .3, 0.00000001)
 
-    trainer = BackpropTrainer(net, ds)
-    print("Total reward: ", total_reward, "Error: ", trainer.train(), "Epsilon: ", epsilon, "Counter: ", counter)
+    if train:
+        trainer = BackpropTrainer(net, ds)
+        epooch_count = 10
+        total_error =0
+        for i in range(epooch_count):
+            total_error += trainer.train()
+        print("Total reward: ", total_reward, "Error: ", total_error/epooch_count, "Epsilon: ", epsilon, "Counter: ",
+              counter, "Max reward: ", max_reward, "Min reward: ", min_reward)
+    else:
+        print("Not trained. Total reward: ", total_reward, "Epsilon: ", epsilon, "Counter: ",
+              counter, "Max reward: ", max_reward, "Min reward: ", min_reward)
 
     if save_file and counter % 50 == 0:
         NetworkWriter.writeToFile(net, network_filename)

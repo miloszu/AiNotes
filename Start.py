@@ -1,8 +1,8 @@
 import hill_climbing
 import gym
 
-cart_pole_env = gym.make('CartPole-v0')
-cart_pole_hill = hill_climbing.HillClimbing(cart_pole_env, episode_count=2000, episode_steps=5000)
+cart_pole_env = gym.make('Acrobot-v0')
+cart_pole_hill = hill_climbing.HillClimbing(cart_pole_env, episode_count=2000, episode_steps=1000)
 cart_pole_hill.run()
 
 

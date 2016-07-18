@@ -77,7 +77,7 @@ def make_policy(theta):
 
 
 # Task settings:d
-env = gym.make('MountainCar-v0')  # Change as needed
+env = gym.make('Acrobot-v0')  # Change as needed
 num_steps = 200  # maximum length of episode
 # Alg settings:
 n_iter = 1000  # number of iterations of CEM
@@ -111,4 +111,4 @@ for iteration in range(n_iter):
     print("Iteration {0}; mean reward: {1}; max reward: {2}\ntheta mean: {3}\ntheta_std: {4}"
           .format(iteration, np.mean(rewards), np.max(rewards), theta_mean, theta_std))
     if iteration % 3 == 0:
-        do_episode(make_policy(theta_mean), env, num_steps, render=True)
+        do_episode(make_policy(theta_mean), env, num_steps, render=False)
