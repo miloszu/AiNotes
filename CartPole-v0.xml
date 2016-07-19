@@ -1,44 +1,30 @@
 <?xml version="1.0" ?>
 <PyBrain>
-	<Network class="pybrain.structure.networks.feedforward.FeedForwardNetwork" name="FeedForwardNetwork-8">
-		<name val="'FeedForwardNetwork-8'"/>
+	<Network class="pybrain.structure.networks.feedforward.FeedForwardNetwork" name="FeedForwardNetwork-5">
+		<name val="'FeedForwardNetwork-5'"/>
 		<Modules>
 			<LinearLayer class="pybrain.structure.modules.linearlayer.LinearLayer" inmodule="True" name="in">
+				<dim val="4"/>
 				<name val="'in'"/>
-				<dim val="5"/>
 			</LinearLayer>
 			<LinearLayer class="pybrain.structure.modules.linearlayer.LinearLayer" name="out" outmodule="True">
+				<dim val="2"/>
 				<name val="'out'"/>
-				<dim val="1"/>
 			</LinearLayer>
 			<BiasUnit class="pybrain.structure.modules.biasunit.BiasUnit" name="bias">
 				<name val="'bias'"/>
 			</BiasUnit>
-			<ReluLayer class="pybrain.structure.modules.relulayer.ReluLayer" name="hidden0">
-				<name val="'hidden0'"/>
-				<dim val="5"/>
-			</ReluLayer>
 		</Modules>
 		<Connections>
 			<FullConnection class="pybrain.structure.connections.full.FullConnection" name="FullConnection-4">
 				<outmod val="out"/>
 				<inmod val="bias"/>
-				<Parameters>[nan]</Parameters>
+				<Parameters>[1.0542529673587995, 1.0586833814125127]</Parameters>
 			</FullConnection>
-			<FullConnection class="pybrain.structure.connections.full.FullConnection" name="FullConnection-5">
-				<outmod val="hidden0"/>
-				<inmod val="bias"/>
-				<Parameters>[nan, nan, nan, nan, nan]</Parameters>
-			</FullConnection>
-			<FullConnection class="pybrain.structure.connections.full.FullConnection" name="FullConnection-7">
-				<outmod val="hidden0"/>
-				<inmod val="in"/>
-				<Parameters>[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]</Parameters>
-			</FullConnection>
-			<FullConnection class="pybrain.structure.connections.full.FullConnection" name="FullConnection-6">
+			<FullConnection class="pybrain.structure.connections.full.FullConnection" name="FullConnection-3">
 				<outmod val="out"/>
-				<inmod val="hidden0"/>
-				<Parameters>[nan, nan, nan, nan, nan]</Parameters>
+				<inmod val="in"/>
+				<Parameters>[0.44006196149888815, -0.28220298912513636, 0.89352187496111546, -0.21711432154174296, 0.38430531209107066, -0.17633336701881844, 0.35693085380666156, -0.15502598291684699]</Parameters>
 			</FullConnection>
 		</Connections>
 	</Network>
