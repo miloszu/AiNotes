@@ -91,14 +91,14 @@ class NeuralNetwork:
 
 if __name__ == '__main__':
 
-    nn = NeuralNetwork([TanhLayer(2), TanhLayer(2), TanhLayer(3)])
+    nn = NeuralNetwork([TanhLayer(2), TanhLayer(2), TanhLayer(1)])
 
     X = np.array([[0, 0],
-                  [0, 1],
-                  [1, 0],
-                  [1, 1]])
+                  [0, -2],
+                  [-2, 0],
+                  [-2, -2]])
 
-    y = np.array([[0, 0, 0], [1, 0, 1], [1, 0, 1], [0, 1, 1]])
+    y = np.array([0, -0.5, -.7,0])
 
     nn.fit(X, y)
 
