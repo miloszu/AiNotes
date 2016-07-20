@@ -24,7 +24,10 @@ else:
 
 discount_factor = .99
 
-net = neural_network.NeuralNetwork([observation_count, observation_count, action_count], activation='linear')# buildNetwork(observation_count, action_count, bias=True, hiddenclass=LinearLayer, outclass = LinearLayer)
+net = neural_network.NeuralNetwork([neural_network.TanhLayer(observation_count),
+                                    neural_network.TanhLayer(observation_count + action_count),
+                                    neural_network.TanhLayer(observation_count + action_count),
+                                    neural_network.LinearLayer(action_count)])
 
 # if from_file:
 #     fileObject = open(network_filename, 'r')

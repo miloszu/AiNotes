@@ -1,52 +1,56 @@
 import numpy as np
+from typing import List
 
 
-def sigmoid(x):
-    return 1.0 / (1.0 + np.exp(-x))
+class Layer:
+    def __init__(self, nodes):
+        self.nodes = nodes
+
+    def activation(self, x):
+        raise NotImplementedError("Please Implement this method")
+
+    def activation_prime(self, x):
+        raise NotImplementedError("Please Implement this method")
 
 
-def sigmoid_prime(x):
-    return x * (1.0 - x)
+class LinearLayer(Layer):
+    def activation(self, x):
+        return x
+
+    def activation_prime(self, x):
+        return 1
 
 
-def tanh(x):
-    return np.tanh(x)
+class TanhLayer(Layer):
+    def activation(self, x):
+        return np.tanh(x)
+
+    def activation_prime(self, x):
+        return 1.0 - x ** 2
 
 
-def tanh_prime(x):
-    return 1.0 - x ** 2
+class SigmoidLayer(Layer):
+    def activation(self, x):
+        return 1.0 / (1.0 + np.exp(-x))
 
-
-def linear(x):
-    return x
-
-
-def linear_prime(x):
-    return 1
+    def activation_prime(self, x):
+        return x * (1.0 - x)
 
 
 class NeuralNetwork:
-    def __init__(self, layers, activation='tanh'):
-        if activation == 'sigmoid':
-            self.activation = sigmoid
-            self.activation_prime = sigmoid_prime
-        elif activation == 'tanh':
-            self.activation = tanh
-            self.activation_prime = tanh_prime
-        elif activation == 'linear':
-            self.activation = linear
-            self.activation_prime = linear_prime
+    def __init__(self, layers: List[Layer]):
 
+        self.layers = layers
         # Set weights
         self.weights = []
         # layers = [2,2,1]
         # range of weight values (-1,1)
         # input and hidden layers - random((2+1, 2+1)) : 3 x 3
         for i in range(1, len(layers) - 1):
-            r = 2 * np.random.random((layers[i - 1] + 1, layers[i] + 1)) - 1
+            r = 2 * np.random.random((layers[i - 1].nodes + 1, layers[i].nodes + 1)) - 1
             self.weights.append(r)
         # output layer - random((2+1, 1)) : 3 x 1
-        r = 2 * np.random.random((layers[i] + 1, layers[i + 1])) - 1
+        r = 2 * np.random.random((layers[i].nodes + 1, layers[i + 1].nodes)) - 1
         self.weights.append(r)
 
     def fit(self, X, y, learning_rate=0.2, epochs=100000):
@@ -63,25 +67,16 @@ class NeuralNetwork:
 
             for l in range(len(self.weights)):
                 dot_value = np.dot(a[l], self.weights[l])
-                activation = self.activation(dot_value)
+                activation = self.layers[l].activation(dot_value) # self.activation(dot_value)
                 a.append(activation)
             # output layer
             error = y[i] - a[-1]
-            deltas = [error * self.activation_prime(a[-1])]
+            deltas = [error * self.layers[-1].activation_prime(a[-1])] # self.activation_prime(a[-1])]
 
-            # we need to begin at the second to last layer
-            # (a layer before the output layer)
             for l in range(len(a) - 2, 0, -1):
-                deltas.append(deltas[-1].dot(self.weights[l].T) * self.activation_prime(a[l]))
+                deltas.append(deltas[-1].dot(self.weights[l].T) * self.layers[l].activation_prime(a[l]))
 
-            # reverse
-            # [level3(output)->level2(hidden)]  => [level2(hidden)->level3(output)]
             deltas.reverse()
-
-            # backpropagation
-            # 1. Multiply its output delta and input activation
-            #    to get the gradient of the weight.
-            # 2. Subtract a ratio (percentage) of the gradient from the weight.
             for i in range(len(self.weights)):
                 layer = np.atleast_2d(a[i])
                 delta = np.atleast_2d(deltas[i])
@@ -90,20 +85,20 @@ class NeuralNetwork:
     def predict(self, x):
         a = np.concatenate((np.ones(1).T, np.array(x)), axis=0)
         for l in range(0, len(self.weights)):
-            a = self.activation(np.dot(a, self.weights[l]))
+            a = self.layers[l].activation(np.dot(a, self.weights[l]))
         return a
 
 
 if __name__ == '__main__':
 
-    nn = NeuralNetwork([2, 2, 1], activation='tanh')
+    nn = NeuralNetwork([TanhLayer(2), TanhLayer(2), TanhLayer(3)])
 
     X = np.array([[0, 0],
                   [0, 1],
                   [1, 0],
                   [1, 1]])
 
-    y = np.array([0, 1, 1, 0])
+    y = np.array([[0, 0, 0], [1, 0, 1], [1, 0, 1], [0, 1, 1]])
 
     nn.fit(X, y)
 
