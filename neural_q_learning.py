@@ -1,17 +1,8 @@
-from pybrain.supervised.trainers import BackpropTrainer
-from pybrain.tools.shortcuts import buildNetwork
-from pybrain.datasets import SupervisedDataSet
-from pybrain.tools.customxml import NetworkWriter
-from pybrain.tools.customxml import NetworkReader
-from pybrain.structure.modules import ReluLayer, LinearLayer
+import neural_network
 from gym.spaces import Discrete, Box
 import numpy as np
 import gym
 import random
-
-
-
-
 
 save_file = True
 from_file = False
@@ -33,11 +24,11 @@ else:
 
 discount_factor = .99
 
-net = buildNetwork(observation_count, action_count, bias=True, hiddenclass=LinearLayer, outclass = LinearLayer)
+net = neural_network.NeuralNetwork([observation_count, observation_count, action_count], activation='linear')# buildNetwork(observation_count, action_count, bias=True, hiddenclass=LinearLayer, outclass = LinearLayer)
 
-if from_file:
-    fileObject = open(network_filename, 'r')
-    net = NetworkReader.readFrom(network_filename)
+# if from_file:
+#     fileObject = open(network_filename, 'r')
+#     net = NetworkReader.readFrom(network_filename)
 
 counter =0
 minibatch_count = 2000
@@ -49,7 +40,7 @@ while True:
     total_reward = 0
     total_error = 0
     for step in range(episode_steps):
-        q_values = net.activate(observation)
+        q_values = net.predict(observation)
         if epsilon < random.random():
             max_q = max(q_values)
             action = np.argmax(q_values)
@@ -72,25 +63,25 @@ while True:
 
     if len(replay_memory) > minibatch_count:
         random_minibatch = random.sample(replay_memory, minibatch_count)
-        ds = SupervisedDataSet(observation_count, action_count)
+        X = np.empty((0, observation_count))
+        Y = np.empty((0, action_count))
+
         for (o, a, r, op, d) in random_minibatch:
-            q_v = net.activate(o)
+            q_v = net.predict(o)
             m_q = q_v[a]
-            q_v_prim = net.activate(op)
+            q_v_prim = net.predict(op)
             m_q_prim = max(q_v_prim)
             y = m_q + alpha * (r + ((discount_factor * m_q_prim) if d else 0) - m_q)
             q_v[a] = y
-            ds.addSample(o, q_v)
-        trainer = BackpropTrainer(net, ds)
-        total_error = trainer.train()
-
-
+            X = np.append(X, np.array([o]), axis=0)
+            Y = np.append(Y, np.array([q_v]), axis=0)
+        net.fit(X,Y, epochs=minibatch_count*2)
     epsilon -= .001
 
 
     print("Total reward: ", total_reward, "Error: ", total_error, "Epsilon: ", epsilon, "Counter: ", counter,
           "Max reward: ", max_reward)
 
-    if save_file and counter % 50 == 0:
-        NetworkWriter.writeToFile(net, network_filename)
-        print("Neural Network Saved to ", network_filename)
+    # if save_file and counter % 50 == 0:
+    #     NetworkWriter.writeToFile(net, network_filename)
+    #     print("Neural Network Saved to ", network_filename)
