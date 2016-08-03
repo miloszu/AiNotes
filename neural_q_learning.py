@@ -36,6 +36,7 @@ counter =0
 minibatch_count = 1100
 max_reward=None
 replay_memory=[]
+replay_memory_size = 10000;
 while True:
     counter+=1
     observation = env.reset()
@@ -60,6 +61,8 @@ while True:
         if step == episode_steps - 1:
             done = True
         replay_memory.append((observation, action, reward, observation_prim, done))
+        if replay_memory_size > len(replay_memory):
+            replay_memory.pop(0)
         observation = observation_prim
         if done:
             break
